@@ -1,5 +1,5 @@
 xp = {}
-xp.lvl = 20
+xp.lvl = 2
 xp.xp_hud = {}
 xp.level_hud = {}
 xp.custom_level_system = false
@@ -22,13 +22,12 @@ end
 
 function xp.add_xp(player, num)
 	player:set_attribute('xp',xp.getXp(player) + num)
-	cmsg.push_message_player(player, "[xp] +"..tostring(num))
-	if xp.getXp(player) > xp.lvl * xp.getLvl(player) then
+	if xp.getXp(player) > xp.lvl ^ xp.getLvl(player) then
 		player:set_attribute('xp', xp.getXp(player) - (xp.lvl * xp.getLvl(player)))
 		xp.add_lvl(player)
 	end
-	print("[info] xp for player ".. player:get_player_name() .. " " .. xp.getXp(player).."/".. xp.lvl * xp.getLvl(player).." = " .. xp.getXp(player) / ( xp.lvl * xp.getLvl(player)))
-	player:hud_change(xp.xp_hud[player:get_player_name()], "number", 20 * ((xp.getXp(player)) / (xp.lvl * xp.getLvl(player))))
+	print("[info] xp for player ".. player:get_player_name() .. " " .. xp.getXp(player).."/".. xp.lvl ^ xp.getLvl(player).." = " .. xp.getXp(player) / ( xp.lvl * xp.getLvl(player)))
+	player:hud_change(xp.xp_hud[player:get_player_name()], "number", 20 * ((xp.getXp(player)) / (xp.lvl ^ xp.getLvl(player))))
 end
 
 function xp.add_lvl(player)
@@ -36,7 +35,6 @@ function xp.add_lvl(player)
 	if not(xp.custom_level_system) then
 		player:hud_change(xp.level_hud[player:get_player_name()], "text", xp.getLvl(player))
 	end
-	cmsg.push_message_player(player, "Level up! You are now Level " .. tostring(xp.getLvl(player)))
 end
 
 function xp.JoinPlayer()
@@ -50,7 +48,7 @@ function xp.JoinPlayer()
 				position = {x=0.5,y=1.0},
 				size = {x=16, y=16},
 				offset = {x=-(32*8+16), y=-(48*2+16)},
-				text = "xp_xp.png",
+				text = "xp.png",
 				number = 20*((xp.getXp(player))/(xp.lvl * xp.getLvl(player))),
 			})
 			xp.level_hud[player:get_player_name()] = player:hud_add({
@@ -108,22 +106,8 @@ function xp.miner_xp()
 	minetest.register_on_dignode(function(pos, oldnode, digger)
 		local miner_xp = minetest.registered_nodes[oldnode.name].miner_xp
 		local player = digger:get_player_name()
-		local player_lvls = skills.lvls[player]
-		if not miner_xp then
-		elseif miner_xp.rm then
-			if player_lvls then
-				xp.add_xp(digger, (player_lvls["miner"]-1))
-			end
-		elseif miner_xp.lvls then
-			if player_lvls and player_lvls["miner"] > 5 then
-				xp.add_xp(digger,xp.getLvl(digger), 14)
-			end
-		elseif miner_xp.rnd then
-			if math.random(miner_xp.rnd) == miner_xp.rnd then
-				xp.add_xp(digger, miner_xp.xp)	
-			end
-		elseif miner_xp.xp then 
-			xp.add_xp(digger, miner_xp.xp)
+		if miner_xp then 
+			xp.add_xp(digger, miner_xp)
 		end
 	end)
 end
