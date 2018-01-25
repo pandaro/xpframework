@@ -23,7 +23,7 @@ end
 function xp.add_xp(player, num)
 	player:set_attribute('xp',xp.getXp(player) + num)
 	if xp.getXp(player) > xp.lvl ^ xp.getLvl(player) then
-		player:set_attribute('xp', xp.getXp(player) - (xp.lvl * xp.getLvl(player)))
+		player:set_attribute('xp', xp.getXp(player) - (xp.lvl ^ xp.getLvl(player)))
 		xp.add_lvl(player)
 	end
 	print("[info] xp for player ".. player:get_player_name() .. " " .. xp.getXp(player).."/".. xp.lvl ^ xp.getLvl(player).." = " .. xp.getXp(player) / ( xp.lvl * xp.getLvl(player)))
@@ -63,7 +63,7 @@ function xp.JoinPlayer()
 		if xp.getXp(player) and xp.getLvl(player) then
 			local optionalDependencies = xp.optionalDependencies()
 			if optionalDependencies["hudbars"] then
-				hb.register_hudbar("xp", 0xFFFFFF, ("xp"), { bar = "xp.png", icon = "xp_icon.png", bgicon = "xp_bg_icon.png" }, 50, 50, false)
+				hb.register_hudbar("xp", 0xFFFFFF, ("xp"), { bar = "xp.png", icon = "xp_icon.png", bgicon = "xp_bg_icon.png" }, 0, 2, false)
 				hb.init_hudbar(player, "xp", xp.getXp(player), nil)
 				print('hudbarsenabled')
 			else
@@ -114,8 +114,9 @@ function xp.explorer_xp()
 				player = v			
 			end
 		end
-		xp.add_xp(player, 0.1)
-		hb.change_hudbar(player,'xp',xp.getXp(player))
+		xp.add_xp(player, 1)
+		hb.change_hudbar(player,'xp',xp.getXp(player),xp.lvl^(xp.getLvl(player)))
+		print(tostring(xp.getXp(player) ..' / '..xp.lvl^(xp.getLvl(player)+1)))
 		
 	end) 
 end
