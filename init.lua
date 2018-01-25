@@ -42,6 +42,12 @@ function xp.JoinPlayer()
 		if not player then
 			return
 		end
+		
+		if not (xp.getXp(player) or xp.getLvl(player)) then
+			ObjectRef:set_attribute('xp', 0)
+			ObjectRef:set_attribute('lvl', 1)
+		end
+		
 		if xp.getXp(player) and xp.getLvl(player) then
 			xp.xp_hud[player:get_player_name()] = player:hud_add({
 				hud_elem_type = "statbar",
@@ -117,6 +123,7 @@ function xp.builder_xp()
 		local builder_xp = minetest.registered_nodes[newnode.name].builder_xp
 		if builder_xp then
 			xp.add_xp(placer, builder_xp)
+			print('sei un coglione')
 		end
 	end)
 end
@@ -128,3 +135,7 @@ xp.miner_xp()
 xp.crafter_xp()
 xp.explorer_xp()
 xp.builder_xp()
+
+
+
+
