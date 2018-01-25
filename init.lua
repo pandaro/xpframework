@@ -36,35 +36,54 @@ function xp.add_lvl(player)
 		player:hud_change(xp.level_hud[player:get_player_name()], "text", xp.getLvl(player))
 	end
 end
-
+function xp.optionalDependencies()
+	local mods=minetest.get_modnames()
+	print(dump(mods))
+	local optionalDependencies = {}
+	for index, value in pairs(mods) do
+		if value == "hudbars" then 
+			--print(true)
+			optionalDependencies["hudbars"]=true
+		end
+	end
+	return optionalDependencies
+end
 function xp.JoinPlayer()
+
 	minetest.register_on_joinplayer(function(player)
 		if not player then
 			return
 		end
 		
-		if not (xp.getXp(player) or xp.getLvl(player)) then
-			ObjectRef:set_attribute('xp', 0)
-			ObjectRef:set_attribute('lvl', 1)
+		if not player:get_attribute('lvl')then
+			player:set_attribute('xp', 0)
+			player:set_attribute('lvl', 1)
 		end
 		
 		if xp.getXp(player) and xp.getLvl(player) then
-			xp.xp_hud[player:get_player_name()] = player:hud_add({
-				hud_elem_type = "statbar",
-				position = {x=0.5,y=1.0},
-				size = {x=16, y=16},
-				offset = {x=-(32*8+16), y=-(48*2+16)},
-				text = "xp.png",
-				number = 20*((xp.getXp(player))/(xp.lvl * xp.getLvl(player))),
-			})
-			xp.level_hud[player:get_player_name()] = player:hud_add({
-				hud_elem_type = "text",
-				position = {x=0.5,y=1},
-				text = xp.getLvl(player),
-				number = 0xFFFFFF,
-				alignment = {x=0.5,y=1},
-				offset = {x=0, y=-(48*2+16)},
-			})
+			local optionalDependencies = xp.optionalDependencies()
+			if optionalDependencies["hudbars"] then
+				hb.register_hudbar("xp", 0xFFFFFF, ("xp"), { bar = "xp.png", icon = "xp_icon.png", bgicon = "xp_bg_icon.png" }, 50, 50, false)
+				hb.init_hudbar(player, "xp", xp.getXp(player), nil)
+				print('hudbarsenabled')
+			else
+				xp.xp_hud[player:get_player_name()] = player:hud_add({
+					hud_elem_type = "statbar",
+					position = {x=0.5,y=1.0},
+					size = {x=16, y=16},
+					offset = {x=-(32*8+16), y=-(48*2+16)},
+					text = "xp.png",
+					number = 20*((xp.getXp(player))/(xp.lvl * xp.getLvl(player))),
+				})
+				xp.level_hud[player:get_player_name()] = player:hud_add({
+					hud_elem_type = "text",
+					position = {x=0.5,y=1},
+					text = xp.getLvl(player),
+					number = 0xFFFFFF,
+					alignment = {x=0.5,y=1},
+					offset = {x=0, y=-(48*2+16)},
+				})
+			end
 		else
 			print(tostring('something, somewhere is going wrong'))
 		end
@@ -95,7 +114,9 @@ function xp.explorer_xp()
 				player = v			
 			end
 		end
-		xp.add_xp(player, 0.1)	
+		xp.add_xp(player, 0.1)
+		hb.change_hudbar(player,'xp',xp.getXp(player))
+		
 	end) 
 end
 
