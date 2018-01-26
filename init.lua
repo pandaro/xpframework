@@ -3,7 +3,7 @@ xp.lvl = 2
 xp.xp_hud = {}
 xp.level_hud = {}
 xp.custom_level_system = false
-
+xp.optDependencies={}
 function xp.set_level_hud_text(player, str)
 	player:hud_change(xp.level_hud[player:get_player_name()], "text", str)
 end
@@ -20,10 +20,17 @@ function xp.get_xp(lvl, x)
 	return (xp.lvl * lvl) / x
 end
 
+function xp.updHudbars(player)
+	if xp.optDependencies["hudbars"] then 
+		hb.change_hudbar(player,'xp',xp.getXp(player),xp.lvl^(xp.getLvl(player)))
+		print(tostring(xp.getXp(player) ..' / '..xp.lvl^(xp.getLvl(player)+1)))
+	end
+end
+
 function xp.add_xp(player, num)
 	player:set_attribute('xp',xp.getXp(player) + num)
 	if xp.getXp(player) > xp.lvl ^ xp.getLvl(player) then
-		player:set_attribute('xp', xp.getXp(player) - (xp.lvl * xp.getLvl(player)))
+		player:set_attribute('xp', xp.getXp(player) - (xp.lvl ^ xp.getLvl(player)))
 		xp.add_lvl(player)
 	end
 	print("[info] xp for player ".. player:get_player_name() .. " " .. xp.getXp(player).."/".. xp.lvl ^ xp.getLvl(player).." = " .. xp.getXp(player) / ( xp.lvl * xp.getLvl(player)))
@@ -36,35 +43,54 @@ function xp.add_lvl(player)
 		player:hud_change(xp.level_hud[player:get_player_name()], "text", xp.getLvl(player))
 	end
 end
-
+function xp.optionalDependencies()
+	local mods=minetest.get_modnames()
+	print(dump(mods))
+	local optionalDependencies = {}
+	for index, value in pairs(mods) do
+		if value == "hudbars" then 
+			--print(true)
+			optionalDependencies["hudbars"]=true
+		end
+	end
+	xp.optDependencies = optionalDependencies
+end
 function xp.JoinPlayer()
+
 	minetest.register_on_joinplayer(function(player)
 		if not player then
 			return
 		end
 		
-		if not (xp.getXp(player) or xp.getLvl(player)) then
-			ObjectRef:set_attribute('xp', 0)
-			ObjectRef:set_attribute('lvl', 1)
+		if not player:get_attribute('lvl')then
+			player:set_attribute('xp', 0)
+			player:set_attribute('lvl', 1)
 		end
 		
 		if xp.getXp(player) and xp.getLvl(player) then
-			xp.xp_hud[player:get_player_name()] = player:hud_add({
-				hud_elem_type = "statbar",
-				position = {x=0.5,y=1.0},
-				size = {x=16, y=16},
-				offset = {x=-(32*8+16), y=-(48*2+16)},
-				text = "xp.png",
-				number = 20*((xp.getXp(player))/(xp.lvl * xp.getLvl(player))),
-			})
-			xp.level_hud[player:get_player_name()] = player:hud_add({
-				hud_elem_type = "text",
-				position = {x=0.5,y=1},
-				text = xp.getLvl(player),
-				number = 0xFFFFFF,
-				alignment = {x=0.5,y=1},
-				offset = {x=0, y=-(48*2+16)},
-			})
+			
+			if xp.optDependencies["hudbars"] then
+				hb.register_hudbar("xp", 0xFFFFFF, ("xp"), { bar = "xp.png", icon = "xp_icon.png", bgicon = "xp_bg_icon.png" }, xp.getXp(player), xp.lvl^(xp.getLvl(player)+1), false)
+				hb.init_hudbar(player, "xp", xp.getXp(player), nil)
+				print('hudbarsenabled')
+			else
+				xp.xp_hud[player:get_player_name()] = player:hud_add({
+					hud_elem_type = "statbar",
+					position = {x=0.5,y=1.0},
+					size = {x=16, y=16},
+					offset = {x=-(32*8+16), y=-(48*2+16)},
+					text = "xp.png",
+					number = 20*((xp.getXp(player))/(xp.lvl * xp.getLvl(player))),
+				})
+				xp.level_hud[player:get_player_name()] = player:hud_add({
+					hud_elem_type = "text",
+					position = {x=0.5,y=1},
+					text = xp.getLvl(player),
+					number = 0xFFFFFF,
+					alignment = {x=0.5,y=1},
+					offset = {x=0, y=-(48*2+16)},
+				})
+			end
 		else
 			print(tostring('something, somewhere is going wrong'))
 		end
@@ -92,10 +118,11 @@ function xp.explorer_xp()
 				
 			elseif dist  < top then  
 				top = dist
-				player = v			
+				player = v
 			end
 		end
-		xp.add_xp(player, 0.1)	
+		xp.add_xp(player, 1)
+		xp.updHudbars(player)
 	end) 
 end
 
@@ -104,6 +131,7 @@ function xp.crafter_xp()
 		local craft_xp = itemstack:get_definition().craft_xp
 		if craft_xp then
 			xp.add_xp(player, craft_xp)
+			xp.updHudbars(player)
 		end
 	end)
 end
@@ -114,6 +142,7 @@ function xp.miner_xp()
 		local player = digger:get_player_name()
 		if miner_xp then 
 			xp.add_xp(digger, miner_xp)
+			xp.updHudbars(player)
 		end
 	end)
 end
@@ -123,10 +152,12 @@ function xp.builder_xp()
 		local builder_xp = minetest.registered_nodes[newnode.name].builder_xp
 		if builder_xp then
 			xp.add_xp(placer, builder_xp)
-			print('sei un coglione')
+			xp.updHudbars(player)
 		end
 	end)
 end
+
+xp.optionalDependencies()
 
 xp.NewPlayer()
 xp.JoinPlayer()
