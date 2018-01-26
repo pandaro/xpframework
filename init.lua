@@ -20,6 +20,13 @@ function xp.get_xp(lvl, x)
 	return (xp.lvl * lvl) / x
 end
 
+function xp.updHudbars(player)
+	if xp.optDependencies["hudbars"] then 
+		hb.change_hudbar(player,'xp',xp.getXp(player),xp.lvl^(xp.getLvl(player)))
+		print(tostring(xp.getXp(player) ..' / '..xp.lvl^(xp.getLvl(player)+1)))
+	end
+end
+
 function xp.add_xp(player, num)
 	player:set_attribute('xp',xp.getXp(player) + num)
 	if xp.getXp(player) > xp.lvl ^ xp.getLvl(player) then
@@ -118,13 +125,7 @@ function xp.explorer_xp()
 		xp.updHudbars(player)
 	end) 
 end
-function xp.updHudbars(player)
-	if xp.optDependencies["hudbars"] then 
-		hb.change_hudbar(player,'xp',xp.getXp(player),xp.lvl^(xp.getLvl(player)))
-		print(tostring(xp.getXp(player) ..' / '..xp.lvl^(xp.getLvl(player)+1)))
-	end
-end
-	
+
 function xp.crafter_xp()
 	minetest.register_on_craft(function(itemstack, player)
 		local craft_xp = itemstack:get_definition().craft_xp
