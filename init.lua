@@ -142,7 +142,7 @@ function xp.miner_xp()
 		local player = digger:get_player_name()
 		if miner_xp then 
 			xp.add_xp(digger, miner_xp)
-			xp.updHudbars(player)
+			xp.updHudbars(digger)
 		end
 	end)
 end
@@ -152,7 +152,7 @@ function xp.builder_xp()
 		local builder_xp = minetest.registered_nodes[newnode.name].builder_xp
 		if builder_xp then
 			xp.add_xp(placer, builder_xp)
-			xp.updHudbars(player)
+			xp.updHudbars(placer)
 		end
 	end)
 end
