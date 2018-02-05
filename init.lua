@@ -12,6 +12,10 @@ function xp.getXp(player)
 	return tonumber(player:get_attribute('xp'))
 end
 
+function xp.getXpPoints(player)
+	return tonumber(player:get_attribute('xpPoints'))
+end
+
 function xp.getLvl(player)
 	return tonumber(player:get_attribute('lvl'))
 end
@@ -37,8 +41,15 @@ function xp.add_xp(player, num)
 	player:hud_change(xp.xp_hud[player:get_player_name()], "number", 20 * ((xp.getXp(player)) / (xp.lvl ^ xp.getLvl(player))))
 end
 
+function xp.add_xpPoints(player)
+	player:set_attribute('xpPoints',xp.getXpPoints(player) + 1)
+	
+
+end
+
 function xp.add_lvl(player)
 	player:set_attribute('lvl',xp.getLvl(player) + 1)
+	
 	if not(xp.custom_level_system) then
 		player:hud_change(xp.level_hud[player:get_player_name()], "text", xp.getLvl(player))
 	end
@@ -65,6 +76,7 @@ function xp.JoinPlayer()
 		if not player:get_attribute('lvl')then
 			player:set_attribute('xp', 0)
 			player:set_attribute('lvl', 1)
+			player:set_attribute('xpPoints', 1)
 		end
 		
 		if xp.getXp(player) and xp.getLvl(player) then
@@ -101,6 +113,7 @@ function xp.NewPlayer()
 	minetest.register_on_newplayer(function(ObjectRef)
 		ObjectRef:set_attribute('xp', 0)
 		ObjectRef:set_attribute('lvl', 1)
+		ObjectRef:set_attribute('xpPoints',1)
 	end)
 end
 
