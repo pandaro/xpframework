@@ -4,6 +4,23 @@ xp.xp_hud = {}
 xp.level_hud = {}
 xp.custom_level_system = false
 xp.optDependencies={}
+
+local settings = minetest.settings
+xp.load_default_value= function()
+	local check = settings:get('EXPLORER_XP')
+	print('saved default value on xpframework')
+	if not check then
+		settings:set('EXPLORER_XP','1')
+		settings:set('CRAFTER_XP', '1')
+		settings:set('BUILDER_XP', '1')
+		settings:set('MINER_XP', '1')
+		settings:write()
+	end
+end
+
+	
+
+
 function xp.set_level_hud_text(player, str)
 	player:hud_change(xp.level_hud[player:get_player_name()], "text", str)
 end
@@ -134,7 +151,7 @@ function xp.explorer_xp()
 				player = v
 			end
 		end
-		xp.add_xp(player, 1)
+		xp.add_xp(player, settings:get('EXPLORER_XP'))
 		xp.updHudbars(player)
 	end) 
 end
@@ -142,10 +159,8 @@ end
 function xp.crafter_xp()
 	minetest.register_on_craft(function(itemstack, player)
 		local craft_xp = itemstack:get_definition().craft_xp
-		if craft_xp then
-			xp.add_xp(player, craft_xp)
-			xp.updHudbars(player)
-		end
+		xp.add_xp(player, (craft_xp or settings:get('CRAFTER_XP')))
+		xp.updHudbars(player)
 	end)
 end
 
@@ -153,24 +168,21 @@ function xp.miner_xp()
 	minetest.register_on_dignode(function(pos, oldnode, digger)
 		local miner_xp = minetest.registered_nodes[oldnode.name].miner_xp
 		local player = digger:get_player_name()
-		if miner_xp then 
-			xp.add_xp(digger, miner_xp)
-			xp.updHudbars(digger)
-		end
+		xp.add_xp(digger, (miner_xp or settings:get('MINER_XP')))
+		xp.updHudbars(digger)
 	end)
 end
 
 function xp.builder_xp()
 	minetest.register_on_placenode(function(pos, newnode, placer)
 		local builder_xp = minetest.registered_nodes[newnode.name].builder_xp
-		if builder_xp then
-			xp.add_xp(placer, builder_xp)
-			xp.updHudbars(placer)
-		end
+		xp.add_xp(placer, (builder_xp or settings:get('BUILDER_XP')))
+		xp.updHudbars(placer)
 	end)
 end
 
 xp.optionalDependencies()
+xp.load_default_value()
 
 xp.NewPlayer()
 xp.JoinPlayer()
@@ -179,6 +191,7 @@ xp.miner_xp()
 xp.crafter_xp()
 xp.explorer_xp()
 xp.builder_xp()
+
 
 
 
